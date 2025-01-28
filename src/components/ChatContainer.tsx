@@ -34,13 +34,25 @@ export const ChatContainer = () => {
       // Test if URL is valid
       new URL(lmStudioUrl);
       
+      // Format messages for LM Studio API
+      const formattedMessages = messages.map(msg => ({
+        role: msg.isUser ? "user" : "assistant",
+        content: msg.content
+      }));
+      
+      // Add the current message
+      formattedMessages.push({
+        role: "user",
+        content: message
+      });
+
       const response = await fetch(`${lmStudioUrl}/v1/chat/completions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          messages: [{ role: "user", content: message }],
+          messages: formattedMessages,
           stream: false,
           max_tokens: 1000,
           temperature: 0.7,
