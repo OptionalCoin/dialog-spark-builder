@@ -50,7 +50,11 @@ export const ChatContainer = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type"
         },
+        mode: "cors",
         body: JSON.stringify({
           messages: formattedMessages,
           stream: false,
@@ -60,7 +64,8 @@ export const ChatContainer = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
 
       const data = await response.json();
@@ -73,7 +78,10 @@ export const ChatContainer = () => {
       let errorMessage = "Failed to get AI response. ";
       if (error instanceof Error) {
         if (error.message.includes("Failed to fetch")) {
-          errorMessage += "Cannot connect to LM Studio. Make sure LM Studio is running and the URL is correct.";
+          errorMessage += "Cannot connect to LM Studio. Make sure:\n" +
+            "1. LM Studio is running\n" +
+            "2. The URL is correct (e.g., http://localhost:1234)\n" +
+            "3. CORS is enabled in LM Studio settings";
         } else {
           errorMessage += error.message;
         }
