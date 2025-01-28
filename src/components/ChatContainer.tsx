@@ -18,8 +18,23 @@ export const ChatContainer = () => {
     setMessages((prev) => [...prev, { content: message, isUser: true }]);
     setIsLoading(true);
 
+    const lmStudioUrl = localStorage.getItem("LM_STUDIO_URL");
+    
+    if (!lmStudioUrl) {
+      toast({
+        title: "Error",
+        description: "LM Studio URL is not configured. Please set it up first.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const response = await fetch(`${localStorage.getItem("LM_STUDIO_URL")}/v1/chat/completions`, {
+      // Test if URL is valid
+      new URL(lmStudioUrl);
+      
+      const response = await fetch(`${lmStudioUrl}/v1/chat/completions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -33,7 +48,7 @@ export const ChatContainer = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to get response");
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
@@ -41,12 +56,22 @@ export const ChatContainer = () => {
 
       setMessages((prev) => [...prev, { content: aiMessage, isUser: false }]);
     } catch (error) {
+      console.error("Error details:", error);
+      
+      let errorMessage = "Failed to get AI response. ";
+      if (error instanceof Error) {
+        if (error.message.includes("Failed to fetch")) {
+          errorMessage += "Cannot connect to LM Studio. Make sure LM Studio is running and the URL is correct.";
+        } else {
+          errorMessage += error.message;
+        }
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to get AI response. Please check your LM Studio URL.",
+        description: errorMessage,
         variant: "destructive",
       });
-      console.error("Error:", error);
     } finally {
       setIsLoading(false);
     }
