@@ -19,15 +19,16 @@ export const ChatContainer = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      const response = await fetch(`${localStorage.getItem("LM_STUDIO_URL")}/v1/chat/completions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("OPENAI_API_KEY")}`,
         },
         body: JSON.stringify({
-          model: "gpt-4",
           messages: [{ role: "user", content: message }],
+          stream: false,
+          max_tokens: 1000,
+          temperature: 0.7,
         }),
       });
 
@@ -42,7 +43,7 @@ export const ChatContainer = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to get AI response. Please check your API key.",
+        description: "Failed to get AI response. Please check your LM Studio URL.",
         variant: "destructive",
       });
       console.error("Error:", error);
